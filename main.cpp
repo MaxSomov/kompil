@@ -61,7 +61,7 @@ void write(char *_word, int _str)
 }
 
 int main()
-{    
+{
     fo=fopen("input.txt","r");
     fw=fopen("output.txt","w");
 
