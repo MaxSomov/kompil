@@ -13,12 +13,11 @@ void write(char *_word, int _str)
         int type=0;
         if (strcmp(_word, "begin")==0) type = 1;
         else if (strcmp(_word, "end")==0) type = 2;
-        else if (strcmp(_word, "var")==0) type = 15;
+        else if (strcmp(_word, "var")==0) type = 5;
         else if (strcmp(_word, ",")==0) type = 3;
         else if (strcmp(_word, ";")==0) type = 4;
-        else if (strcmp(_word, ",")==0) type = 5;
         else if (strcmp(_word, "+")==0) type = 6;
-        else if (strcmp(_word, "-")==0 && (tmp==10 || tmp==11)) type = 16;
+        else if (strcmp(_word, "-")==0 && (tmp==10 || tmp==11)) type = 15;
         else if (strcmp(_word, "-")==0) type = 7;
         else if (strcmp(_word, "*")==0) type = 8;
         else if (strcmp(_word, "/")==0) type = 9;
