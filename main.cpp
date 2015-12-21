@@ -1,11 +1,31 @@
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
+#include <cctype>
+#include <string>
+#include <fstream>
+#include <conio.h>
+
 //using namespace std;
 char word[100], sym, a[10], b[10];
 int tmp;
 int i=0, str=1;
 FILE *fo, *fw;
+FILE *input;
+
+string buf,digit,alpha,var;
+string adres[25];
+
+int checkpos(string var)
+{
+    int pos=-1;
+    for (int i=0;i<25;i++)
+    {
+        if (!var.compare(adres[i]))
+            return i;
+    }
+    return pos;
+}
 
 void A();
 void B();
@@ -385,17 +405,45 @@ void polska_notation()
     fo = fopen("output.txt", "r");
     fw = fopen("polska.txt", "w");
 
+    fscanf(fo, "%s", &word);
+    fscanf(fo, "%d", &k);
+    fscanf(fo, "%s", &a);
+
     do
     {
-        do
-        {
-            fscanf(fo, "%s", &word);
-            fscanf(fo, "%d", &k);
-            fscanf(fo, "%s", &a);
-        }
-        while(k!=10 && k!=2);
+        fscanf(fo, "%s", &word);
+        fscanf(fo, "%d", &k);
+        fscanf(fo, "%s", &a);
 
-        if (k==2) break;
+        if(k==1) break;
+
+        if(k!=3)
+        {
+            strcat(result, word);
+            strcat(result, " ");
+        }
+    }
+    while(true);
+
+    fprintf(fw, "%s\n", result);
+    strcpy(result, "");
+
+    do
+    {
+        fscanf(fo, "%s", &word);
+        fscanf(fo, "%d", &k);
+        fscanf(fo, "%s", &a);
+
+        if(k==2) break;
+
+        strcat(result, word);
+        strcat(result, " ");
+
+        fscanf(fo, "%s", &word);
+        fscanf(fo, "%d", &k);
+        fscanf(fo, "%s", &a);
+
+        //        strcat(result, "= ");
 
         do
         {
@@ -416,14 +464,16 @@ void polska_notation()
                 break;
 
             case 8:
+                while(stack[strlen(stack)-1]=='/' || stack[strlen(stack)-1]=='*')
+                {
+                    strcat(result, &stack[strlen(stack)-1]);
+                    strcat(result, " ");
+                    stack[strlen(stack)-1] = '\0';
+                }
                 strcat(stack, word);
                 break;
 
             case 9:
-                strcat(stack, word);
-                break;
-
-            case 6:
                 while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/')
                 {
                     strcat(result, &stack[strlen(stack)-1]);
@@ -433,8 +483,18 @@ void polska_notation()
                 strcat(stack, word);
                 break;
 
+            case 6:
+                while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/' || stack[strlen(stack)-1]=='-' || stack[strlen(stack)-1]=='+')
+                {
+                    strcat(result, &stack[strlen(stack)-1]);
+                    strcat(result, " ");
+                    stack[strlen(stack)-1] = '\0';
+                }
+                strcat(stack, word);
+                break;
+
             case 7:
-                while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/')
+                while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/' || stack[strlen(stack)-1]=='+' || stack[strlen(stack)-1]=='-')
                 {
                     strcat(result, &stack[strlen(stack)-1]);
                     strcat(result, " ");
@@ -458,7 +518,13 @@ void polska_notation()
                 break;
 
             case 15:
-                strcat(result, "-");
+                while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/')
+                {
+                    strcat(result, &stack[strlen(stack)-1]);
+                    strcat(result, " ");
+                    stack[strlen(stack)-1] = '\0';
+                }
+                strcat(stack, "~");
                 break;
             }
         }
@@ -469,20 +535,105 @@ void polska_notation()
             strcat(result, " ");
             stack[i] = '\0';
         }
+        strcat(result, "=");
         fprintf(fw, "%s\n", result);
         strcpy(stack, "");
         strcpy(result, "");
-
     }
-    while (true);
+    while(true);
+
     fclose(fo);
     fclose(fw);
+}
+
+void code_gen()
+{
+    ifstream postfix ("polska.txt");
+    int st=0;
+    int a=0;
+    getline(postfix,buf);
+    for (int i=0;i<buf.size();i++)
+    {
+        do
+        {
+            adres[a].push_back(buf[i]);
+            i++;
+        }
+        while (buf[i]!=32);
+        a++;
+    }
+    buf.clear();
+    while(!postfix.eof())
+    {
+        getline(postfix,buf);
+        int pos,j=0;
+        do
+        {
+            var.push_back(buf[j]);
+            j++;
+        }
+        while (buf[j]!=32);
+        for (int i=j;i<buf.size();i++)
+        {
+            if (isdigit(buf[i]))
+            {
+                while (isdigit(buf[i]))
+                {
+                    digit.push_back(buf[i]);
+                    i++;
+                }
+                cout<<"LIT "<<digit<<"\n";
+                digit.clear();
+            }
+            if (isalpha(buf[i]))
+            {
+                while (isalpha(buf[i]))
+                {
+                    alpha.push_back(buf[i]);
+                    i++;
+                }
+                if (checkpos(alpha)!=-1)
+                {
+                    cout<<"LOAD "<<checkpos(alpha)<<"\n";
+                }
+                else
+                    cout<<"Unidentified variable "<<alpha<<"\n";
+                alpha.clear();
+            }
+            if (buf[i]=='=')
+            {
+                pos=checkpos(var);
+                if (pos!=-1)
+                {
+                    cout<<"STO "<<pos<<"\n";
+                }
+                else
+                {
+                    cout<<"Unidetified variable "<<var<<"\n";
+                }
+            }
+            if (buf[i]=='*')
+                cout<<"MUL "<<"\n";
+            if (buf[i]=='/')
+                cout<<"DIV "<<"\n";
+            if (buf[i]=='+')
+                cout<<"ADD "<<"\n";
+            if (buf[i]=='-')
+                cout<<"SUB "<<"\n";
+            if (buf[i]=='~')
+                cout<<"NOT "<<"\n";
+        }
+        var.clear();
+        buf.clear();
+    }
+    postfix.close();
+
+    getch();
 }
 
 int main()
 {
     lex_anal();
-    syntax_anal();
     polska_notation();
     return 1;
 }
