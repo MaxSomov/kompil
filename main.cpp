@@ -202,9 +202,9 @@ void B()
     fscanf(fo, "%s", &b);
     fscanf(fo, "%s", &a);
     C();
-//    fscanf(fo, "%s", &word);
-//    fscanf(fo, "%s", &b);
-//    fscanf(fo, "%s", &a);
+    //    fscanf(fo, "%s", &word);
+    //    fscanf(fo, "%s", &b);
+    //    fscanf(fo, "%s", &a);
     if (strcmp(word, "end")!=0) printf("%s: ошибка в ключевом слове end\n", a);
 }
 
@@ -279,7 +279,7 @@ void I()
         fscanf(fo, "%s", &word);
         fscanf(fo, "%s", &b);
         fscanf(fo, "%s", &a);
-//        if (strcmp(word, ")")!=0) printf("%s: отсутствует ')'\n", a);
+        //        if (strcmp(word, ")")!=0) printf("%s: отсутствует ')'\n", a);
         x5();
     }
     else
@@ -292,9 +292,9 @@ void I()
 //операнд
 void J()
 {
-//    fscanf(fo, "%s", &word);
-//    fscanf(fo, "%s", &b);
-//    fscanf(fo, "%s", &a);
+    //    fscanf(fo, "%s", &word);
+    //    fscanf(fo, "%s", &b);
+    //    fscanf(fo, "%s", &a);
     if(strcmp(b, "13")!=0)
         if (strcmp(b, "14")!=0)
             printf("%s: ошибка операнда '%s'\n", a, word);
@@ -303,9 +303,9 @@ void J()
 //бинарная операция
 int K()
 {
-//    fscanf(fo, "%s", &word);
-//    fscanf(fo, "%s", &b);
-//    fscanf(fo, "%s", &a);
+    //    fscanf(fo, "%s", &word);
+    //    fscanf(fo, "%s", &b);
+    //    fscanf(fo, "%s", &a);
     if (strcmp(word, "+")!=0)
         if (strcmp(word, "-")!=0)
             if (strcmp(word, "*")!=0)
@@ -315,7 +315,7 @@ int K()
     fscanf(fo, "%s", &b);
     fscanf(fo, "%s", &a);
     return 0;
-//    if (k<6 || k>9) printf("%s: ошибка бинарной операции %d\n", a);
+    //    if (k<6 || k>9) printf("%s: ошибка бинарной операции %d\n", a);
 }
 
 void L()
@@ -356,7 +356,7 @@ void x2()
     fscanf(fo, "%s", &a);
     if (strcmp(word, "end")!=0)
         C();
-//    else printf ("конец");
+    //    else printf ("конец");
 }
 
 void x5()
@@ -366,19 +366,123 @@ void x5()
     fscanf(fo, "%s", &a);
     if(strcmp(b, "4")!=0)
         Z();
-//    else printf ("конец выражения\n");
+    //    else printf ("конец выражения\n");
 }
 
 void syntax_anal()
 {
     fo=fopen("output.txt","r");
     P();
+    fclose(fo);
+}
+
+void polska_notation()
+{
+    int k;
+    char stack[500], result[500];
+    strcpy(stack, "");
+    strcpy(result, "");
+    fo = fopen("output.txt", "r");
+    fw = fopen("polska.txt", "w");
+
+    do
+    {
+        do
+        {
+            fscanf(fo, "%s", &word);
+            fscanf(fo, "%d", &k);
+            fscanf(fo, "%s", &a);
+        }
+        while(k!=10 && k!=2);
+
+        if (k==2) break;
+
+        do
+        {
+            fscanf(fo, "%s", &word);
+            fscanf(fo, "%d", &k);
+            fscanf(fo, "%s", &a);
+
+            switch(k)
+            {
+            case 13:
+                strcat(result, word);
+                strcat(result, " ");
+                break;
+
+            case 14:
+                strcat(result, word);
+                strcat(result, " ");
+                break;
+
+            case 8:
+                strcat(stack, word);
+                break;
+
+            case 9:
+                strcat(stack, word);
+                break;
+
+            case 6:
+                while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/')
+                {
+                    strcat(result, &stack[strlen(stack)-1]);
+                    strcat(result, " ");
+                    stack[strlen(stack)-1] = '\0';
+                }
+                strcat(stack, word);
+                break;
+
+            case 7:
+                while(stack[strlen(stack)-1]=='*' || stack[strlen(stack)-1]=='/')
+                {
+                    strcat(result, &stack[strlen(stack)-1]);
+                    strcat(result, " ");
+                    stack[strlen(stack)-1] = '\0';
+                }
+                strcat(stack, word);
+                break;
+
+            case 11:
+                strcat(stack, word);
+                break;
+
+            case 12:
+                while(stack[strlen(stack)-1]!='(')
+                {
+                    strcat(result, &stack[strlen(stack)-1]);
+                    strcat(result, " ");
+                    stack[strlen(stack)-1] = '\0';
+                }
+                stack[strlen(stack)-1] = '\0';
+                break;
+
+            case 15:
+                strcat(result, "-");
+                break;
+            }
+        }
+        while(k!=4);
+        for (int i=strlen(stack)-1; i>=0; i--)
+        {
+            strcat(result, &stack[i]);
+            strcat(result, " ");
+            stack[i] = '\0';
+        }
+        fprintf(fw, "%s\n", result);
+        strcpy(stack, "");
+        strcpy(result, "");
+
+    }
+    while (true);
+    fclose(fo);
+    fclose(fw);
 }
 
 int main()
 {
     lex_anal();
     syntax_anal();
+    polska_notation();
     return 1;
 }
-
